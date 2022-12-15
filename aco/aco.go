@@ -2,75 +2,80 @@ package aco
 
 import (
 	"math"
+
+	"github.com/EP-coode/ACO-alghoritm/helpers"
 )
 
 type AcoParams struct {
+	Alpha              float64
+	Beta               float64
+	Q                  float64
+	DegradationFactor  float64
+	AntsPopulationSize int
 }
 
-type AntEnviroment struct {
-	Cities         []*City
-	CityConections [][]*CityConnection
+type Aco struct {
+	params     AcoParams
+	enviroment *AntEnviroment
+	bestAnt    *Ant
 }
 
-type CityConnection struct {
-	Pheromone float64
-	Distance  float64
+func NewAco(params AcoParams, cities []City) *Aco {
+	return &Aco{
+		params:     params,
+		bestAnt:    nil,
+		enviroment: NewAntEnviroment(cities),
+	}
 }
 
-type City struct {
-	X float64
-	Y float64
+func (a *Aco) RunAco() {
+
 }
 
-func (src *City) GetDistance(dst *City) float64 {
-	dx := src.X - dst.X
-	dy := src.Y - dst.Y
-	return math.Sqrt(dx*dx + dy*dy)
+func (a *Aco) GetBestAnt() *Ant {
+	return &Ant{
+		Path: a.bestAnt.Path,
+	}
 }
 
-func (e *AntEnviroment) GetConnectionInfo(cityIndex1 int, cityIndex2 int) *CityConnection {
-	if cityIndex2 == cityIndex1 {
+func (a *Aco) antTraverse(startCityIndex int) *Ant {
+	cities := *a.enviroment.cities
+
+	if startCityIndex >= len(cities) || startCityIndex < 0 {
 		return nil
 	}
 
-	if cityIndex2 >= len(e.Cities) || cityIndex2 < 0 {
-		return nil
+	visitedCitiesIndexes := make([]int, len(cities))
+	visitedCitiesIndexes[0] = startCityIndex
+	citiesToVisitIndexes := helpers.MakeRange(0, len(cities)-1)
+	_, citiesToVisitIndexes = helpers.RemoveFromArray(citiesToVisitIndexes, startCityIndex)
+
+	for i := 1; i < len(cities); i++ {
+		// calc neightbour cities connection weights
+		currentCityIndex := visitedCitiesIndexes[i-1]
+		citiesWeights := a.getNeightbourCitiesWeights(citiesToVisitIndexes, currentCityIndex)
+
+		// pick random city based on connection weight
+		pickedCityIndex, _ := helpers.WeightRandomPick(citiesToVisitIndexes, citiesWeights)
+		visitedCitiesIndexes[i] = citiesToVisitIndexes[*pickedCityIndex]
+
+		// remove visited city
+		_, citiesToVisitIndexes = helpers.RemoveFromArray(citiesToVisitIndexes, *pickedCityIndex)
 	}
 
-	if cityIndex1 >= len(e.Cities) || cityIndex1 < 0 {
-		return nil
+	return &Ant{
+		Path: visitedCitiesIndexes,
 	}
-
-	// make sure index 2 is bigger than 1
-	if cityIndex1 > cityIndex2 {
-		tmp := cityIndex1
-		cityIndex1 = cityIndex2
-		cityIndex2 = tmp
-	}
-
-	// add ofset becaouse diagonal is skipped
-	return e.CityConections[cityIndex2 - 1][cityIndex1]
 }
 
-func NewAntEnviroment(cities []*City) *AntEnviroment {
-	cityConnections := make([][]*CityConnection, len(cities)-1)
-	for i := range cityConnections {
-		cityConnections[i] = make([]*CityConnection, len(cityConnections)-i)
+func (a *Aco) getNeightbourCitiesWeights(citiesToVisitIndexes []int, currentCityIndex int) []float64 {
+	citiesWeights := make([]float64, len(citiesToVisitIndexes))
+
+	for j, cityToVisitIndex := range citiesToVisitIndexes {
+		pheromoneLevel := a.enviroment.GetCitiesPheromone(currentCityIndex, cityToVisitIndex)
+		distance := a.enviroment.GetCitiesDistance(currentCityIndex, cityToVisitIndex)
+		citiesWeights[j] = math.Pow(*pheromoneLevel, a.params.Alpha) / math.Pow(*distance, a.params.Beta)
 	}
 
-	enviroment := &AntEnviroment{
-		Cities:         cities,
-		CityConections: cityConnections,
-	}
-
-	for i := range cityConnections {
-		for j := range cityConnections[i] {
-			cityConnections[i][j] = &CityConnection{
-				Pheromone: 0,
-				Distance:  cities[i].GetDistance(cities[j]),
-			}
-		}
-	}
-
-	return enviroment
+	return citiesWeights
 }
