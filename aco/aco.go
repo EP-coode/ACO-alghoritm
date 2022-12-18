@@ -38,7 +38,7 @@ func (a *Aco) RunAco(iterations int) {
 
 		// make ants colony run
 		for j := 0; j < a.params.AntsPopulationSize; j++ {
-			startingCity := rand.Intn(a.params.AntsPopulationSize)
+			startingCity := rand.Intn(len(*a.enviroment.cities))
 			ants[j] = *a.antTraverse(startingCity)
 
 			if a.bestAnt == nil || ants[j].Distance < a.bestAnt.Distance {
