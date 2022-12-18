@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"sync"
 
 	"github.com/EP-coode/ACO-alghoritm/helpers"
 )
@@ -34,18 +35,20 @@ func (a *Aco) RunAco(iterations int) {
 	l := log.Default()
 
 	for i := 0; i < iterations; i++ {
+		var antWg sync.WaitGroup
+		antWg.Add(a.params.AntsPopulationSize)
+
 		ants := make([]Ant, a.params.AntsPopulationSize)
 
-		// make ants colony run
 		for j := 0; j < a.params.AntsPopulationSize; j++ {
-			startingCity := rand.Intn(len(*a.enviroment.cities))
-			ants[j] = *a.antTraverse(startingCity)
-
-			if a.bestAnt == nil || ants[j].Distance < a.bestAnt.Distance {
-				a.bestAnt = &ants[j]
-				l.Printf("New best Ant { distance: %v }", a.bestAnt.Distance)
-			}
+			go func(j int) {
+				startIndex := rand.Intn(len(*a.enviroment.cities))
+				ants[j] = *a.antTraverse(startIndex)
+				antWg.Done()
+			}(j)
 		}
+
+		antWg.Wait()
 
 		// update pheromone
 		for _, ant := range ants {
@@ -56,6 +59,14 @@ func (a *Aco) RunAco(iterations int) {
 				city2 := ant.Path[k]
 				currentPheromone, _ := a.enviroment.cityPheromones.GetEdge(city1, city2)
 				a.enviroment.cityPheromones.SetEdge(city1, city2, *currentPheromone+pheromoneDelta)
+			}
+
+			if a.bestAnt == nil || ant.Distance < a.bestAnt.Distance {
+				a.bestAnt = &Ant{
+					Path:     ant.Path,
+					Distance: ant.Distance,
+				}
+				l.Printf("New best Ant { distance: %v }", a.bestAnt.Distance)
 			}
 		}
 

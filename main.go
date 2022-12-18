@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -13,10 +14,17 @@ import (
 
 func main() {
 	rand.Seed(time.Now().Unix())
+	start := time.Now()
+	log.Print("Starting trivial_0")
 	runAco("trivial_0.ttp")
+	log.Print("Starting easy_0")
 	runAco("easy_0.ttp")
+	log.Print("Starting medium_0")
 	runAco("medium_0.ttp")
+	log.Print("Starting hard_0")
 	runAco("hard_0.ttp")
+	elapsed := time.Since(start)
+	log.Printf("Execution took %s", elapsed)
 }
 
 func runAco(fileName string) {
@@ -26,9 +34,9 @@ func runAco(fileName string) {
 	acoParams := aco.AcoParams{
 		Alpha:              1,
 		Beta:               1,
-		Q:                  1,
+		Q:                  1000,
 		DegradationFactor:  0.1,
-		AntsPopulationSize: 20,
+		AntsPopulationSize: 10,
 	}
 
 	solver := aco.NewAco(acoParams, cities)
