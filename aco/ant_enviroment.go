@@ -8,14 +8,14 @@ import (
 )
 
 type Ant struct {
-	Path     []int
-	Distance float64
+	Path         []int
+	Distance     float64
 }
 
 type AntEnviroment struct {
 	cities         *[]City
-	cityDistances  *graph.UndirectedNoLoopGraph[int, float64]
-	cityPheromones *graph.UndirectedNoLoopGraph[int, float64]
+	cityDistances  *graph.UndirectedNoLoopGraph[float64]
+	cityPheromones *graph.UndirectedNoLoopGraph[float64]
 }
 
 type City struct {

@@ -1,7 +1,9 @@
 package aco
 
 import (
+	"log"
 	"math"
+	"math/rand"
 
 	"github.com/EP-coode/ACO-alghoritm/helpers"
 )
@@ -28,13 +30,50 @@ func NewAco(params AcoParams, cities []City) *Aco {
 	}
 }
 
-func (a *Aco) RunAco() {
+func (a *Aco) RunAco(iterations int) {
+	l := log.Default()
 
+	for i := 0; i < iterations; i++ {
+		ants := make([]Ant, a.params.AntsPopulationSize)
+
+		// make ants colony run
+		for j := 0; j < a.params.AntsPopulationSize; j++ {
+			startingCity := rand.Intn(a.params.AntsPopulationSize)
+			ants[j] = *a.antTraverse(startingCity)
+
+			if a.bestAnt == nil || ants[j].Distance < a.bestAnt.Distance {
+				a.bestAnt = &ants[j]
+				l.Printf("New best Ant { distance: %v }", a.bestAnt.Distance)
+			}
+		}
+
+		// update pheromone
+		for _, ant := range ants {
+			pheromoneDelta := a.params.Q / ant.Distance
+
+			for k := 1; k < len(ant.Path); k++ {
+				city1 := ant.Path[k-1]
+				city2 := ant.Path[k]
+				currentPheromone, _ := a.enviroment.cityPheromones.GetEdge(city1, city2)
+				a.enviroment.cityPheromones.SetEdge(city1, city2, *currentPheromone+pheromoneDelta)
+			}
+		}
+
+		// evaporate pheromone
+		for i := 0; i < len(*a.enviroment.cities); i++ {
+			for j := i + 1; j < len(*a.enviroment.cities); j++ {
+				currentPheromone, _ := a.enviroment.cityPheromones.GetEdge(i, j)
+				a.enviroment.cityPheromones.SetEdge(i, j, *currentPheromone*a.params.DegradationFactor)
+			}
+		}
+
+	}
 }
 
 func (a *Aco) GetBestAnt() *Ant {
 	return &Ant{
-		Path: a.bestAnt.Path,
+		Path:     a.bestAnt.Path,
+		Distance: a.bestAnt.Distance,
 	}
 }
 
@@ -45,27 +84,31 @@ func (a *Aco) antTraverse(startCityIndex int) *Ant {
 		return nil
 	}
 
-	visitedCitiesIndexes := make([]int, len(cities))
-	visitedCitiesIndexes[0] = startCityIndex
+	ant := Ant{}
+
+	ant.Path = make([]int, len(cities))
+	ant.Path[0] = startCityIndex
 	citiesToVisitIndexes := helpers.MakeRange(0, len(cities)-1)
 	_, citiesToVisitIndexes = helpers.RemoveFromArray(citiesToVisitIndexes, startCityIndex)
 
 	for i := 1; i < len(cities); i++ {
 		// calc neightbour cities connection weights
-		currentCityIndex := visitedCitiesIndexes[i-1]
-		citiesWeights := a.getNeightbourCitiesWeights(citiesToVisitIndexes, currentCityIndex)
+		currentCity := ant.Path[i-1]
+		citiesWeights := a.getNeightbourCitiesWeights(citiesToVisitIndexes, currentCity)
 
 		// pick random city based on connection weight
 		pickedCityIndex, _ := helpers.WeightRandomPick(citiesToVisitIndexes, citiesWeights)
-		visitedCitiesIndexes[i] = citiesToVisitIndexes[*pickedCityIndex]
+		nextCity := citiesToVisitIndexes[*pickedCityIndex]
+		ant.Path[i] = nextCity
+
+		// update distance
+		ant.Distance += *a.enviroment.GetCitiesDistance(currentCity, nextCity)
 
 		// remove visited city
 		_, citiesToVisitIndexes = helpers.RemoveFromArray(citiesToVisitIndexes, *pickedCityIndex)
 	}
 
-	return &Ant{
-		Path: visitedCitiesIndexes,
-	}
+	return &ant
 }
 
 func (a *Aco) getNeightbourCitiesWeights(citiesToVisitIndexes []int, currentCityIndex int) []float64 {

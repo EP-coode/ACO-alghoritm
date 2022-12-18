@@ -3,7 +3,6 @@ package helpers
 import (
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 func MakeRange(min, max int) []int {
@@ -27,9 +26,7 @@ func WeightRandomPick[T any](values []T, weights []float64) (*int, error) {
 		}
 	}
 
-	s := rand.NewSource(time.Now().Unix())
-	r := rand.New(s)
-	stopWeight := r.Float64() * totalWeight
+	stopWeight := rand.Float64() * totalWeight
 
 	totalTraversedWeight := 0.
 	stopIndex := 0

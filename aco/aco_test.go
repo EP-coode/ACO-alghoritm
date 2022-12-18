@@ -2,7 +2,9 @@ package aco
 
 import (
 	"math"
+	"math/rand"
 	"testing"
+	"time"
 )
 
 func TestEnviroemntCreation(t *testing.T) {
@@ -62,6 +64,8 @@ func TestAntTraversing(t *testing.T) {
 		DegradationFactor:  1,
 		AntsPopulationSize: 10,
 	}
+
+	rand.Seed(time.Now().Unix())
 
 	aco := NewAco(acoParams, cities)
 

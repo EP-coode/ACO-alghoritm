@@ -1,11 +1,11 @@
 package graph
 
-type UndirectedNoLoopGraph[V any, E any] struct {
-	vericies *[]V
+type UndirectedNoLoopGraph[E any] struct {
+	vericies *[]int
 	edges    [][]E
 }
 
-func NewGraph[V any, E any](verticies []V, initialEdgeValue E) *UndirectedNoLoopGraph[V, E] {
+func NewGraph[V any, E any](verticies []int, initialEdgeValue E) *UndirectedNoLoopGraph[E] {
 	edges := make([][]E, len(verticies)-1)
 	for i := range edges {
 		edges[i] = make([]E, len(verticies)-i)
@@ -14,13 +14,13 @@ func NewGraph[V any, E any](verticies []V, initialEdgeValue E) *UndirectedNoLoop
 		}
 	}
 
-	return &UndirectedNoLoopGraph[V, E]{
+	return &UndirectedNoLoopGraph[E]{
 		vericies: &verticies,
 		edges:    edges,
 	}
 }
 
-func (g *UndirectedNoLoopGraph[V, E]) SetEdge(x, y int, newEdge E) bool {
+func (g *UndirectedNoLoopGraph[E]) SetEdge(x, y int, newEdge E) bool {
 	if y == x {
 		return false
 	}
@@ -45,7 +45,7 @@ func (g *UndirectedNoLoopGraph[V, E]) SetEdge(x, y int, newEdge E) bool {
 	return true
 }
 
-func (g *UndirectedNoLoopGraph[V, E]) GetEdge(x, y int) (*E, bool) {
+func (g *UndirectedNoLoopGraph[E]) GetEdge(x, y int) (*E, bool) {
 	if y == x {
 		return nil, false
 	}
