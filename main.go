@@ -28,17 +28,24 @@ func main() {
 func runAco(fileName string) {
 	rootDir, _ := os.Getwd()
 	path := filepath.Join(rootDir, "data", fileName)
-	cities := ttp.LoadPorblem(path)
+	cities, err := ttp.LoadPorblem(path)
+
+	if err != nil {
+		log.Printf("Failed to load file %v. cause: %v", fileName, err)
+		return
+	}
+
 	acoParams := aco.AcoParams{
 		Alpha:              1,
-		Beta:               1,
-		Q:                  10_000,
-		DegradationFactor:  0.1,
-		AntsPopulationSize: 10,
+		Beta:               2,
+		Q:                  20_000,
+		D:                  13,
+		DegradationFactor:  0.3,
+		AntsPopulationSize: 40,
 	}
 
 	solver := aco.NewAco(acoParams, cities)
-	solver.RunAco(5000)
+	solver.RunAco(5_000)
 
 	solver.PlotAnt(solver.GetBestAnt(), fmt.Sprintf("doc/results/result_of_%v", fileName))
 }

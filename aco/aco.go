@@ -13,6 +13,7 @@ type AcoParams struct {
 	Alpha              float64
 	Beta               float64
 	Q                  float64
+	D                  float64 // greater values makes small changes more significant
 	DegradationFactor  float64
 	AntsPopulationSize int
 }
@@ -52,7 +53,7 @@ func (a *Aco) RunAco(iterations int) {
 
 		// update pheromone
 		for _, ant := range ants {
-			pheromoneDelta := a.params.Q / ant.Distance
+			pheromoneDelta := math.Pow(a.params.Q/ant.Distance, a.params.D)
 
 			for k := 1; k < len(ant.Path); k++ {
 				city1 := ant.Path[k-1]
@@ -118,6 +119,8 @@ func (a *Aco) antTraverse(startCityIndex int) *Ant {
 		// remove visited city
 		_, citiesToVisitIndexes = helpers.RemoveFromArray(citiesToVisitIndexes, *pickedCityIndex)
 	}
+
+	ant.Distance += *a.enviroment.GetCitiesDistance(ant.Path[0], ant.Path[len(ant.Path)-1])
 
 	return &ant
 }

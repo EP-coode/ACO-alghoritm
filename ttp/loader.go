@@ -13,17 +13,32 @@ import (
 
 var findDimesion = regexp.MustCompile(`(?m)DIMENSION:\s(\d+)`)
 
-func LoadPorblem(filePath string) []aco.City {
-	file, _ := os.Open(filePath)
+func LoadPorblem(filePath string) ([]aco.City, error) {
+	file, err1 := os.Open(filePath)
+
+	if err1 != nil {
+		return nil, err1
+	}
+
 	fileScanner := bufio.NewScanner(file)
 	fileScanner.Split(bufio.ScanLines)
 
-	dim, _ := findDimSize(fileScanner)
-	cities, _ := loadCities(fileScanner, dim)
+	dim, err2 := findDimSize(fileScanner)
+
+	if err2 != nil {
+		return nil, err2
+	}
+
+	cities, err3 := loadCities(fileScanner, dim)
+
+	
+	if err2 != nil {
+		return nil, err3
+	}
 
 	file.Close()
 
-	return cities
+	return cities, nil
 }
 
 func loadCities(scanner *bufio.Scanner, citiesCount int) ([]aco.City, error) {
@@ -40,8 +55,18 @@ func loadCities(scanner *bufio.Scanner, citiesCount int) ([]aco.City, error) {
 	for scanner.Scan() && citiesLoaded < citiesCount {
 		line := scanner.Text()
 		tokens := strings.Split(line, "\t")
-		x, _ := strconv.ParseFloat(tokens[1], 64)
-		y, _ := strconv.ParseFloat(tokens[2], 64)
+
+		x, err1 := strconv.ParseFloat(tokens[1], 64)
+
+		if err1 != nil {
+			return nil, fmt.Errorf("failed to parse cities data: %v", err1)
+		}
+
+		y, err2 := strconv.ParseFloat(tokens[2], 64)
+
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to parse cities data: %v", err2)
+		}
 
 		cities[citiesLoaded] = aco.City{
 			X: x,
@@ -67,5 +92,5 @@ func findDimSize(scanner *bufio.Scanner) (int, error) {
 		}
 	}
 
-	return 0, fmt.Errorf("dimension not found")
+	return 0, fmt.Errorf("dimension not found in header of file")
 }
