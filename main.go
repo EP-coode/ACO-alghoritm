@@ -19,8 +19,6 @@ func main() {
 	runAco("trivial_0.ttp")
 	log.Print("Starting easy_0")
 	runAco("easy_0.ttp")
-	log.Print("Starting medium_0")
-	runAco("medium_0.ttp")
 	log.Print("Starting hard_0")
 	runAco("hard_0.ttp")
 	elapsed := time.Since(start)
@@ -34,7 +32,7 @@ func runAco(fileName string) {
 	acoParams := aco.AcoParams{
 		Alpha:              1,
 		Beta:               1,
-		Q:                  1000,
+		Q:                  10_000,
 		DegradationFactor:  0.1,
 		AntsPopulationSize: 10,
 	}
