@@ -1,5 +1,5 @@
 # Golang ACO (Ant Colony Optimization)
-Simplified implementation of ACO alghoritm. Benchmarked with TTP (Traveling Thief Problem) data but simplified to TSP (Traveling Salesman Problem)
+Simplified implementation of ACO alghoritm. Benchmarked with TTP (Traveling Thief Problem) data but simplified to TSP (Traveling Salesman Problem).
 
 # Example results
 Trivial 0
